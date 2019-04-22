@@ -1,0 +1,650 @@
+/*2018 11 26 本题 就是一个字符串转整数，判断条件多，题目不难。*/
+class Solution {
+public:
+    int StrToInt(string str) {
+        if(str.empty()) return 0;
+        int i=0;
+        int dig=true;
+        int num=0;
+        if(str[i]=='+')                    //判断正负
+        {
+            i++;
+        }else if(str[i]=='-')              //判断正负
+        {
+            i++;
+            dig=false;
+        }
+        while(str[i]!='\0')
+        {
+            if('0'<=str[i]&&str[i]<='9')//
+            {
+                int flag=dig?1:-1;
+                num=num*10+flag*(str[i]-'0');      //数 乘以10，单字符转数字:(str[i]-'0')
+                i++;
+            }else
+            {
+                num=0;
+                break;
+            }        
+        }     
+        return num;
+    }
+};
+/*2018/11、27:本题需要创建一个辅助数组空间，并 初始化为0，辅助数组记录原数组中数字出现的次数，当不等于0时，返回那个数字，然后返回真(题意：所有数字都在0-n-1的范围内)*/
+class Solution {
+public:
+    bool duplicate(int numbers[], int length, int* duplication) {
+        int*assist=new int[length]; //一个辅助数组空间，并 初始化为0
+        memset(assist,0,sizeof(int)*length); //一个辅助数组空间，并 初始化为0       
+        for(int i=0;i<length;i++)
+        {
+          if(assist[numbers[i]]==0)
+          {
+              assist[numbers[i]]++;
+          }
+            else
+            {
+                *duplication=numbers[i];  
+                return true;
+            }
+        }
+        return false;
+    }
+};
+/*2018/11/27:本题是用了一个暴力解法,本题的亮点在于用了一个 continue语句跳出了 相等的条件*/
+class Solution {
+public:
+    vector<int> multiply( vector<int>& A) 
+    {
+        int n=A.size();
+       vector<int>B(n);    //对vector类型进行初始化
+        for(int i=0;i<n;i++)
+        {
+            B[i]=1;
+           
+            for(int j=0;j<n;j++)
+            {
+                if(i==j) continue;    //continue语句跳出了 相等的条件
+                else
+                { B[i]=B[i]*A[j];}
+            }
+        }
+        return B;
+    
+    }
+};
+/*
+2018,12,3
+首先，考虑特殊情况：
+1>两个字符串都为空，返回true
+2>当第一个字符串不空，而第二个字符串空了，返回false(因为这样，就无法匹配成功了，而如果第一个字符串空了，而第二个字符串非空，还是可能匹配成功的，比如第二个字符串是“a*a*a*a*”,由于‘*’之前的元素可以出现0次，
+            所以有可能匹配成功)
+ 之后就开始匹配第一个字符，这里有两种可能，匹配成功或匹配失败。但考虑到pattern下一个字符可能是‘*’，这里我们分两种情况讨论：pattern 下一个 字符为 '*'或 不为‘*’：
+       1>pattern 下一个字符不为'*':这种情况比较简单，直接匹配当前字符。如果匹配成功，继续匹配下一个；如果匹配失败，直接返回false。注意这里的“匹配成功”，除了两个字符相同的情况下外，还有一种情况，就是patternd的当前
+       字符为‘.’,且str的当前字符不为'\0'
+       2>pattern下一个字符为'*'时，稍微复杂一些，因为'*'可以代表0个或多个。这里我们把这些情况都考虑到：
+           a>当'*'匹配0个字符时，str当前字符不变，pattern当前字符后移两位，跳过这个'*'符号；
+           b>当'*'匹配1个或多个时，str当前字符移向下一个，pattern当前字符不变.(这里匹配1个或多个可以看出1种情况，因为：当匹配1个时，由于str移到了下一个字符，而pattern字符不变，就回到了a>的情况，当匹配多于1个字符时，
+           相当于从str的下一个字符继续开始匹配)*/
+class Solution {
+public:
+    bool match(char* str, char* pattern)
+    {
+      if(*str=='\0'&&*pattern=='\0')
+          return true;
+      if(*str!='\0'&&*pattern=='\0')
+          return false;
+      if(*(pattern+1)!='*')
+      {
+          if(*str==*pattern||(*str!='\0'&&*pattern=='.'))
+              return match(str+1,pattern+1);
+          else
+              return false;
+      }
+       else
+      {
+         if(*str==*pattern||(*str!='\0'&&*pattern=='.'))
+             return match(str,pattern+2)||match(str+1,pattern);
+         else
+             return match(str,pattern+2);
+      }    
+    }
+};
+/*2018 12 4
+1 标记符号，小数点，e是否出现过;
+2 判断 'e' ，e后面一定要接数字，不能同时存在两个e，
+3 第二次出现+-符号，则必须紧接在e之后，第一次出现+-符号，且不是在字符串开头，则也必须紧接在e之后
+4 e后面不能接小数点，小数点不能出现两次*/
+class Solution {
+public:
+    bool isNumeric(char* str)
+    {
+        bool sign=false,decimal=false,hasE=false;
+        for(int i=0;i<strlen(str);i++)
+        {
+            if(str[i]=='E'||str[i]=='e')
+            {
+                if(i==strlen(str)-1) return false;
+                if(hasE) return false;
+                hasE=true;  
+            }else if(str[i]=='+'||str[i]=='-')
+            {
+                if(sign&&str[i-1]!='E'&&str[i-1]!='e') return false;
+                if(!sign&&i>0&&str[i-1]!='e'&&str[i-1]!='E') return false;
+                sign=true;
+            }else if(str[i]=='.')
+            {
+                if(hasE||decimal) return false;
+                decimal=true;
+            }else if(str[i]<'0'||str[i]>'9')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+
+/*2018 12 4 本题是利用 hash算法的原理，利用hash[ch]来计数，ch的范围 在 0-256 之间*/
+class Solution
+{
+public:
+    string s="";
+    char hash[256]={0};     //每个字符 的 ASCII码 都在 0~256之间，每个字符都和一个索引相对应
+    
+  //Insert one char from stringstream
+    void Insert(char ch)
+    {
+       s=s+ch;
+       hash[ch]++;
+    }
+  //return the first appearence once char in current stringstream
+    char FirstAppearingOnce()
+    {
+       for(int i=0;i<s.size();i++)
+       {
+           if(hash[s[i]]==1) return s[i];
+       }
+        return '#';
+    }
+
+}
+/*解法1：这是一个断链法，时间复杂度为O(n),用两个指针，1个在前，1个紧邻着这个指针，在后面，两个指针同时向后面移动，每移动1次，前面的指针next 指向NULL，
+也就是说访问过得节点都断开，最后到达的那个节点一定是尾节点的最后1个，也就是环的第一个，这时候已经是第二次访问环的第一个节点了，第一次访问的时候，我们已经让它指向了NULL，所以到这结束*/
+/*
+struct ListNode {
+    int val;
+    struct ListNode *next;
+    ListNode(int x) :
+        val(x), next(NULL) {
+    }
+};
+*/
+/*class Solution {
+public:
+    ListNode* EntryNodeOfLoop(ListNode* pHead)
+    {
+        if(pHead->next==NULL)
+            return NULL;
+        ListNode* previous=pHead;
+        ListNode*front=previous->next;
+        while(front)
+        {
+            previous->next=NULL;
+            previous=front;
+            front=front->next;
+        }
+        return previous;
+    }
+};*/
+/*解法2：左神讲的，先说个定理：两个指针1个fast,1个slow,同时从一个链表的头部出发
+//fast一次走两步，slow一次走1步，如果该链表有环，两个指针必然在环内相遇，
+此时只要把其中的1个指针重新指向链表头部，另一个不变（还在环内），这次两个指针一次走一步，相遇的地方就是入口节点。（定理还没弄懂）
+
+当快慢指针相遇的时候：
+
+此时慢指针走的路程为Sslow = x + m * c + a+
+快指针走的路程为Sfast = x + n * c + a
+2 Sslow = Sfast
+2 * ( x + m*c + a ) = (x + n *c + a)
+从而可以推导出：
+x = (n - 2 * m )*c - a
+= (n - 2 *m -1 )*c + c - a*/
+class Solution {
+public:
+    ListNode* EntryNodeOfLoop(ListNode* pHead)
+    {
+       ListNode*fast=pHead;
+       ListNode*slow=pHead;
+       if(fast==NULL||fast->next==NULL)
+           return NULL;
+       while(fast->next!=NULL)
+       {
+           fast=fast->next->next;
+           slow=slow->next;
+           if(fast==slow) break;
+       }
+       fast=pHead;
+      
+       while(fast!=slow)
+       {
+           fast=fast->next;
+           slow=slow->next;
+       }
+        return fast;
+    }
+};
+/*2018 12 6 解法1：我们每次都判断当前结点的值与下一个节点的值是否重复:如果重复就循环寻找下一个不重复的节点，　将他们链接新新链表的尾部（其实就是删除重复的节点）*/
+/*
+struct ListNode {
+    int val;
+    struct ListNode *next;
+    ListNode(int x) :
+        val(x), next(NULL) {
+    }
+};
+*/
+/*class Solution {
+public:
+    ListNode* deleteDuplication(ListNode* pHead)
+    {
+        ListNode*first=new ListNode(-1);
+        first->next=pHead;
+        ListNode*p=pHead;
+        ListNode*last=first;
+        while(p!=NULL&&p->next!=NULL)
+        {
+            if(p->val==p->next->val)
+            {
+                int val=p->val;
+                while(p!=NULL&&p->val==val)
+                {
+                    p=p->next;
+                }
+                last->next=p;
+            }
+            else
+            {
+                last=p;
+                p=p->next;
+            }
+        }
+        return first->next;
+    }
+};*/
+
+//解法2:没看
+class Solution {
+public:
+    ListNode* deleteDuplication(ListNode* pHead)
+    {
+        ListNode h(-1);
+        ListNode *newNode = &h;
+        ListNode *preNode = NULL;
+        ListNode *oldNode = pHead;
+        int cnt;
+
+        while(oldNode != NULL)
+        {
+            preNode = oldNode;
+            oldNode = oldNode->next;
+            cnt = 0;
+
+            // 对preNode出现的次数进行计数
+            while(oldNode && oldNode->val == preNode->val)
+            {
+                oldNode = oldNode->next;
+                ++cnt;
+            }
+
+            //  如果preNode出现了0次
+            if(cnt == 0)
+            {
+                //  把preNode链接到了newNode的末尾
+                newNode->next = preNode;
+                newNode = preNode;
+            }
+        }
+        newNode->next = NULL;
+        return h.next;
+    }
+};
+
+/*2018 12 7 思路：首先知道中序遍历的规则是：左根右，然后作图。
+我们可发现分成两大类：1、有右子树的，那么下个结点就是右子树最左边的点；（eg：D，B，E，A，C，G） 2、没有右子树的，也可以分成两类，a)是父节点左孩子（eg：N，I，L） ，
+那么父节点就是下一个节点 ； b)是父节点的右孩子（eg：H，J，K，M）找他的父节点的父节点的父节点...
+直到当前结点是其父节点的左孩子位置。
+如果没有eg：M，那么他就是尾节点。*/
+/*
+struct TreeLinkNode {
+    int val;
+    struct TreeLinkNode *left;
+    struct TreeLinkNode *right;
+    struct TreeLinkNode *next;
+    TreeLinkNode(int x) :val(x), left(NULL), right(NULL), next(NULL) {
+        
+    }
+};
+*/
+class Solution {
+public:
+    TreeLinkNode* GetNext(TreeLinkNode* pNode)
+    {
+        if(pNode==NULL)
+            return NULL;
+        if(pNode->right!=NULL)
+        {
+            pNode=pNode->right;
+            if(pNode->left!=NULL)
+                pNode=pNode->left;
+            return pNode;
+        }
+        while(pNode->next!=NULL)
+        {
+            TreeLinkNode*proot=pNode->next;
+            if(proot->left==pNode)
+                return proot;
+            pNode=pNode->next;
+        }
+        return NULL;
+    }
+};
+
+/*2018 12 7 本题是个递归的用法*/
+/*
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+    TreeNode(int x) :
+            val(x), left(NULL), right(NULL) {
+    }
+};
+*/
+class Solution {
+public:
+    bool isSymmetrical(TreeNode* pRoot)
+    {
+      return isSymmetrical(pRoot,pRoot);
+    }
+    bool isSymmetrical(TreeNode* pRoot1,TreeNode* pRoot2)
+    {
+        if(pRoot1==NULL&&pRoot2==NULL)
+            return true;
+        if(pRoot1==NULL||pRoot2==NULL)
+            return false;
+        if(pRoot1->val!=pRoot2->val)
+            return false;
+        return isSymmetrical(pRoot1->left,pRoot2->right)&&isSymmetrical(pRoot1->right,pRoot2->left);  
+    }
+
+};
+class Solution {
+public:
+    vector<vector<int> > Print(TreeNode* pRoot) {
+        vector<vector<int>>Values;
+        if(pRoot==NULL) return Values;
+        stack<TreeNode*>levels[2];
+        vector<int> currentLevel{};
+        int current=0;
+        int next=1;
+        levels[current].push(pRoot);
+        while(!levels[0].empty()||!levels[1].empty())  //判定两个栈内是否为空
+        {
+           TreeNode*pNode=levels[current].top();
+           levels[current].pop();
+           currentLevel.push_back(pNode->val);
+            if(current==0)                                  //表示当前操作的栈
+            {
+               if(pNode->left!=NULL)
+                   levels[next].push(pNode->left);
+               if(pNode->right!=NULL)
+                   levels[next].push(pNode->right);
+            }
+            else
+            {
+                if(pNode->right!=NULL)
+                    levels[next].push(pNode->right);
+                if(pNode->left!=NULL)
+                    levels[next].push(pNode->left);
+             }
+            if(levels[current].empty())//判断当前栈是否为空，如果为空，移到下一行，且一层元素都加入了currentLevel中
+            {
+                current=1-current;
+                next=1-next;
+                Values.push_back(currentLevel);
+                currentLevel.clear();
+            }
+          }
+        return Values;  
+    }
+   
+};
+
+class Solution {
+public:
+        vector<vector<int> > Print(TreeNode* pRoot) {
+            vector<vector<int>>ret;
+            queue<TreeNode*> que;
+            if(pRoot)que.push(pRoot);      //注意是push(),不是push_back()
+            while(!que.empty())
+            {
+                vector<int>tmp;
+                int n=que.size();
+                while(n--)
+                {
+                    TreeNode* pNode=que.front();
+                    tmp.push_back(pNode->val);
+                    if(pNode->left)
+                        que.push(pNode->left);
+                    if(pNode->right)
+                        que.push(pNode->right);
+                    que.pop();
+                }
+                ret.push_back(tmp);
+            }
+            return ret;
+        }
+    
+};
+typedef TreeNode node;
+typedef TreeNode* pnode;
+typedef int* pint;
+class Solution {
+    vector<int> buf;
+    void dfs(pnode p)
+    {
+        if(!p) buf.push_back(0x23333);
+        else
+        {
+            buf.push_back(p->val);
+            dfs(p->left);
+            dfs(p->right);
+        }
+    }
+    pnode dfs2(pint& p)
+    {
+        if(*p==0x23333)
+        {
+            ++p;
+            return NULL;
+        }
+        pnode res=new node(*p);
+        ++p;
+        res->left=dfs2(p);
+        res->right=dfs2(p);
+        return res;
+    }
+public:
+    char* Serialize(TreeNode *p) {  
+        buf.clear();
+        dfs(p);
+        int* res=new int[buf.size()];
+        for(unsigned int i=0;i<buf.size();++i)
+            res[i]=buf[i];
+        return (char*)res; 
+    }
+    TreeNode* Deserialize(char *str) {
+        int* p=(int*)str;
+        return dfs2(p);
+    }
+};
+class Solution {
+public:
+    int count=0;
+    TreeNode* KthNode(TreeNode* pRoot, int k)
+    {
+        if(pRoot==NULL)
+            return NULL;
+     
+      
+          TreeNode* ret=KthNode(pRoot->left, k);
+          if(ret) return ret;
+          if(++count==k)  return pRoot;
+          ret=KthNode(pRoot->right, k);
+          if(ret) return ret;
+      
+        
+        return NULL;
+    } 
+};
+class Solution {
+public:
+    TreeNode* KthNode(TreeNode* pRoot, int k)
+    {
+        stack<TreeNode*> st;
+        int index=0;
+        if(pRoot==NULL||k==0) return NULL;
+        while(pRoot!=NULL||!st.empty())
+        {
+            while(pRoot!=NULL)
+            {
+             st.push(pRoot);
+             pRoot=pRoot->left;  
+            }
+            if(!st.empty())
+            {
+                pRoot=st.top();
+                st.pop();
+                index++;
+                if(index==k) return pRoot;
+                pRoot=pRoot->right;
+            } 
+        }
+        return NULL;
+    }
+};
+/*2018 12 11 本题 数据流的插入方式不懂，解法1：这是简单的解法，用了vector容器。解法2：还有困难的通过大小根堆解决，没有弄懂*/
+/*class Solution {
+    vector<int> v;
+    int n;
+public:
+    void Insert(int num)
+    {
+        v.push_back(num);
+        n=v.size();
+        sort(v.begin(),v.end());   
+    }
+    double GetMedian()
+    { 
+        if(n%2==0)
+            return (v[n/2-1]+v[n/2])/2.0;
+        else
+            return v[(n-1)/2];
+    }
+};*/
+class Solution {
+    priority_queue<int,vector<int>,less<int>> p;
+    priority_queue<int,vector<int>,greater<int>> q;     
+    public:
+    void Insert(int num){ 
+        if(p.empty()||num<=p.top()) p.push(num);
+        else q.push(num);
+        if(p.size()==q.size()+2){ q.push(p.top());p.pop();}
+        if(p.size()+1==q.size()) {p.push(q.top());q.pop();}
+    }
+    double GetMedian(){ 
+         return p.size() == q.size() ? (p.top() + q.top()) / 2.0 : p.top();
+    }
+};
+
+/*2018 12 13 回溯算法，比较好的方法，还是不怎么熟悉，可以多加练习，本题弄了清楚了*/
+class Solution {
+public:
+    bool hasPath(char* matrix, int rows, int cols, char* str)
+    {
+        if(rows<=0||cols<=0||matrix==NULL)
+            return false;
+        if(str==NULL)
+            return true;
+        bool*isOk=new bool[rows*cols]();
+        for(int i=0;i<rows;i++)
+        {
+            for(int j=0;j<cols;j++)
+            {
+                if(isHasPath(matrix,rows,cols,str,isOk,i,j))
+                    return true;
+            }
+        }
+        return false;          
+    }
+    bool isHasPath(char* matrix, int rows, int cols, char* str,bool*isOk,int curx,int cury)
+    {
+        if(*str=='\0')
+            return true;
+        if(curx<0||curx>=rows||cury<0||cury>=cols)
+            return false;
+        if(isOk[cols*curx+cury]||*str!=matrix[cols*curx+cury])
+            return false;
+        isOk[cols*curx+cury]=true;
+        bool sign=isHasPath(matrix,rows,cols,str+1,isOk,curx-1,cury)
+            ||isHasPath(matrix,rows,cols,str+1,isOk,curx+1,cury)
+            ||isHasPath(matrix,rows,cols,str+1,isOk,curx,cury-1)
+            ||isHasPath(matrix,rows,cols,str+1,isOk,curx,cury+1);
+        isOk[cols*curx+cury]=false;
+        return sign;
+    }
+
+
+};
+/*2018 12 14 本题是个递归算法，用多个函数进行计算，有比较多的知识点可以学习，比较好复习。*/
+class Solution {
+public:
+    int movingCount(int threshold, int rows, int cols)
+    {
+        bool*flag=new bool[rows*cols]();
+        int count=movingStep(threshold,rows,cols,0,0,flag);
+        delete []flag;
+        return count;
+    }
+    int movingStep(int threshold, int rows, int cols,int i,int j,bool*flag)
+    {
+        int count=0;
+        if(isCheck(threshold,rows,cols,i,j,flag))
+        {
+           flag[i*cols+j]=true;
+           count=1+movingStep(threshold,rows,cols,i-1,j,flag)
+                  +movingStep(threshold,rows,cols,i+1,j,flag)
+                  +movingStep(threshold,rows,cols,i,j-1,flag)
+                  +movingStep(threshold,rows,cols,i,j+1,flag);
+        }
+        return count;  
+    }
+    bool  isCheck(int threshold, int rows, int cols,int i,int j,bool*flag)
+    {
+        if(i>=0&&i<rows&&j>=0&&j<cols&&getSum(i)+getSum(j)<=threshold&&flag[i*cols+j]==false)
+            return true;
+        return false;
+    }
+    int getSum(int num)
+    {
+        int sum=0;
+        while(num>0)
+        {
+            sum+=num%10;
+            num/=10;
+        }
+        return sum;
+    }
+};
